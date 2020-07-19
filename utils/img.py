@@ -79,7 +79,7 @@ def cut_chip_images(inpath_raster: Union[Path, str],
 
         # Export chip images
         Path(outpath_chipfolder).mkdir(parents=True, exist_ok=True)
-        with open(Path(rf'{outpath_chipfolder}\{chip_name}.jpg'), 'w') as dst:
+        with open(Path(rf'{outpath_chipfolder}/{chip_name}.jpg'), 'w') as dst:
             img_pil.save(dst, format='JPEG', subsampling=0, quality=100)
 
         all_chip_stats[chip_name] = {'mean': img_array.mean(axis=(0, 1)),
