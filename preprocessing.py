@@ -16,7 +16,6 @@
 
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
 import rasterio
