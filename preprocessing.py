@@ -143,8 +143,6 @@ statistics = {
 new_json(outpath / 'statistics.json', statistics)
 pprint(statistics)
 
-
-utils.coco.plot_coco(inpath_json=outpath / r'annotations/val2016.json', 
-                     inpath_image_folder=outpath / r'images/val2016', 
-                     end=2)
+# Uncomment to plot results
+#utils.coco.plot_coco(inpath_json=outpath / r'annotations/val2016.json', inpath_image_folder=outpath / r'images/val2016', end=2)
 
