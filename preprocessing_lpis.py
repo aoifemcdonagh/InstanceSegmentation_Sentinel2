@@ -23,7 +23,7 @@ outpath = Path(r'output/preprocessed')
 def prepare_vector(fp, out_crs, clipping_bounds):
     df = (gpd.read_file(str(fp), encoding='cp865')  # danish encoding
              .rename(columns={'Afgroede': 'lc_name', 'AfgKode': 'lc_id', 'Journalnr': 'journalnr'})
-             .drop(['GB', 'IMK_areal' 'Marknr', 'CVR'], axis=1)
+             .drop(['GB', 'IMK_areal', 'Marknr', 'CVR'], axis=1)
              .pipe(utils.geo.explode_mp)
              .pipe(utils.geo.buffer_zero)
              .pipe(utils.geo.close_holes)
