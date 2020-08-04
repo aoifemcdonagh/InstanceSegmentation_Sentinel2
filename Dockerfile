@@ -7,5 +7,3 @@ RUN pip3 install -r /tmp/requirements.txt
 RUN pip3 install jupyter
 
 
-CMD cd /tmp; jupyter notebook --port 9996 --allow-root
-
