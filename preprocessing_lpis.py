@@ -25,7 +25,7 @@ def prepare_vector(fp, out_crs, clipping_bounds):
     print('preparing vector')
     #tqdm.pandas()
     df = (gpd.read_file(str(fp), encoding='cp865')  # danish encoding
-             .rename(columns={'Afgroede': 'lc_name', 'AfgKode': 'lc_id', 'Journalnr': 'journalnr'})
+             .rename(columns={'Afgroede': 'lc_name', 'Afgkode': 'lc_id', 'Journalnr': 'journalnr'})
              .drop(['GB', 'IMK_areal', 'Marknr', 'CVR'], axis=1)
              .pipe(utils.geo.explode_mp)
              .pipe(utils.geo.buffer_zero)
