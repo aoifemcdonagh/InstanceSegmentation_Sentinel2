@@ -35,6 +35,7 @@ inpath_fields = Path(r'data/marker2016_small.shp')
 outpath = Path(r'output/preprocessed')
 
 def prepare_vector(fp, out_crs, clipping_bounds):
+    print("preparing vector")
     df = (gpd.read_file(str(fp), encoding='cp865')  # danish encoding
              .rename(columns={'Afgroede': 'lc_name', 'AfgKode': 'lc_id', 'JOURNALNUM': 'journalnr'})
              .drop(['GB', 'GEOMETRISK', 'MARKNUMMER'], axis=1)
@@ -52,7 +53,9 @@ def prepare_vector(fp, out_crs, clipping_bounds):
              .pipe(utils.geo.reduce_precision, precision=4)
              .reset_index(drop=True)
              .assign(fid=lambda _df: range(0, len(_df.index))))
+    print("filtering")
     df = (df.filter(['journalnr', 'lc_id', 'lc_name', 'r_lc_id', 'r_lc_name', 'area_sqm', 'fid', 'geometry']))
+    print("finished preparing vector")
     return df
 
 outpath_fields = outpath / 'prepared_vector.shp'
