@@ -7,6 +7,7 @@ import geopandas as gpd
 import rasterio
 import shapely
 from pprint import pprint
+#from tqdm import tqdm
 
 import utils
 from utils.other import new_pickle, load_pickle, new_json, load_json
@@ -21,6 +22,8 @@ inpath_fields = Path(r'data/thesis_data/Marker_2016_CVR.shp')
 outpath = Path(r'output/preprocessed')
 
 def prepare_vector(fp, out_crs, clipping_bounds):
+    print('preparing vector')
+    #tqdm.pandas()
     df = (gpd.read_file(str(fp), encoding='cp865')  # danish encoding
              .rename(columns={'Afgroede': 'lc_name', 'AfgKode': 'lc_id', 'Journalnr': 'journalnr'})
              .drop(['GB', 'IMK_areal', 'Marknr', 'CVR'], axis=1)
@@ -39,6 +42,7 @@ def prepare_vector(fp, out_crs, clipping_bounds):
              .reset_index(drop=True)
              .assign(fid=lambda _df: range(0, len(_df.index)))
              .filter(['journalnr', 'lc_id', 'lc_name', 'r_lc_id', 'r_lc_name', 'area_sqm', 'fid', 'geometry']))
+    print("finished preparing vector")
     return df
 
 outpath_fields = outpath / 'prepared_vector.shp'
