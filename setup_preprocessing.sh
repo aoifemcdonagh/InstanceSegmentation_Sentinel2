@@ -6,5 +6,6 @@ apt -y install python3-pip
 apt install nano git python3-tk
 
 pip3 install shapely==1.6.4
-pip3 install matplotlib geopandas rasterio tqdm descartes scikit-image pathlib pprint
+pip3 install geopandas==0.8.0
+pip3 install matplotlib rasterio tqdm descartes scikit-image pathlib pprint
 
