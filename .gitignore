@@ -5,3 +5,4 @@ korrekt_small/
 .ipynb_checkpoints/
 data/thesis_data
 settings.json
+output/
