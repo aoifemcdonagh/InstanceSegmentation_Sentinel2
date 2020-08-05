@@ -7,5 +7,11 @@ apt install nano git python3-tk
 
 pip3 install shapely==1.6.4
 pip3 install geopandas==0.8.0
-pip3 install matplotlib rasterio tqdm descartes scikit-image pathlib pprint imgaug
+pip3 install matplotlib rasterio tqdm descartes scikit-image pathlib pprint 
+
+# required for building pycocotools 
+# go to coco/PythonAPI 
+# change 'python' to 'python3' in Makefile
+# execute 'make'
+pip3 install imgaug Cython
 
