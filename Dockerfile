@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:latest
 COPY . /tmp
 RUN apt update; apt install -y git python3-pip
 
