@@ -67,7 +67,7 @@ print(df.info())
 
 
 outpath_chips = outpath / 'chip_dfs.pkl'
-chip_width, chip_height = 128, 128
+chip_width, chip_height = 256, 256
 
 if not outpath_chips.exists():
     with rasterio.open(inpath_s2) as src:
