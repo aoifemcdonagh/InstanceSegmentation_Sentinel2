@@ -16,7 +16,7 @@ from utils.other import new_pickle, load_pickle, new_json, load_json
 # ## Vector preparation 
 
 # vectors point to full LPIS data
-inpath_s2 = Path(r'data/thesis_data/mosaic_denmark_T32VNH_T32UNG.tif')
+inpath_s2 = Path(r'data/falsecolor_data/T32UNG-T32VNH-RGI.tif')
 inpath_fields = Path(r'data/thesis_data/Marker_2016_CVR.shp')
 
 outpath = Path(r'output/preprocessed')
