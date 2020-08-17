@@ -77,8 +77,7 @@ if not outpath_chips.exists():
                                              raster_height=raster_meta['height'],
                                              raster_transform=raster_meta['transform'],
                                              chip_width=chip_width,
-                                             chip_height=chip_height,
-                                             first_n_chips = 1000)
+                                             chip_height=chip_height)
     new_pickle(outpath_chips, chip_dfs)
 else:
     chip_dfs = load_pickle(outpath_chips)
