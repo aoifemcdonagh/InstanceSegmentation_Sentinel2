@@ -12,15 +12,6 @@ from pprint import pprint
 import utils
 from utils.other import new_pickle, load_pickle, new_json, load_json
 
-
-# ## Vector preparation 
-
-# vectors point to full LPIS data
-inpath_s2 = Path(r'data/falsecolor_data/T32UNG-T32VNH-RGI.tif')
-inpath_fields = Path(r'data/thesis_data/Marker_2016_CVR.shp')
-
-outpath = Path(r'output/preprocessed')
-
 def prepare_vector(fp, out_crs, clipping_bounds):
     print('preparing vector')
     #tqdm.pandas()
@@ -45,93 +36,104 @@ def prepare_vector(fp, out_crs, clipping_bounds):
     print("finished preparing vector")
     return df
 
-outpath_fields = outpath / 'prepared_vector.shp'
 
-if not outpath_fields.exists():
-    with rasterio.open(inpath_s2) as src:
-        raster_meta = src.meta
-        raster_bounds = src.bounds
-    df = prepare_vector(inpath_fields, raster_meta['crs'], raster_bounds)
-    outpath_fields.parent.mkdir(parents=True, exist_ok=True)
-    df.to_file(outpath_fields, driver='ESRI Shapefile', encoding='cp865')
-else:
-    print(f'Loading from exisiting shp file... {outpath_fields.name}')
-    df = gpd.read_file(str(outpath_fields), encoding='cp865')
-     
-print(df.info())
+if __name__ == '__main__':
+    # ## Vector preparation
 
+    # vectors point to full LPIS data
+    inpath_s2 = Path(r'data/falsecolor_data/T32UNG-T32VNH-RGI.tif')
+    inpath_fields = Path(r'data/thesis_data/Marker_2016_CVR.shp')
 
-# ## Cut to chips
+    outpath = Path(r'output/preprocessed')
 
-# ### Clip vectors to chip geometries
+    outpath_fields = outpath / 'prepared_vector.shp'
 
+    # vectors for cutting chips
+    outpath_chips = outpath / 'chip_dfs.pkl'
+    chip_width, chip_height = 256, 256
 
-outpath_chips = outpath / 'chip_dfs.pkl'
-chip_width, chip_height = 256, 256
+    # Print configurations
+    print("satellite imagery: " + str(inpath_s2))
+    print("annotations: " + str(inpath_fields))
+    print("output dir: " + str(outpath))
+    print("outpath fields: " + str(outpath_fields))
+    print("chip width: " + str(chip_width))
 
-if not outpath_chips.exists():
-    with rasterio.open(inpath_s2) as src:
-        raster_meta = src.meta
-    chip_dfs = utils.geo.cut_chip_geometries(vector_df=df,
-                                             raster_width=raster_meta['width'],
-                                             raster_height=raster_meta['height'],
-                                             raster_transform=raster_meta['transform'],
-                                             chip_width=chip_width,
-                                             chip_height=chip_height)
-    new_pickle(outpath_chips, chip_dfs)
-else:
-    chip_dfs = load_pickle(outpath_chips)
-    
-print('len', len(chip_dfs))
+    if not outpath_fields.exists():
+        with rasterio.open(inpath_s2) as src:
+            raster_meta = src.meta
+            raster_bounds = src.bounds
+        df = prepare_vector(inpath_fields, raster_meta['crs'], raster_bounds)
+        outpath_fields.parent.mkdir(parents=True, exist_ok=True)
+        df.to_file(outpath_fields, driver='ESRI Shapefile', encoding='cp865')
+    else:
+        print(f'Loading from exisiting shp file... {outpath_fields.name}')
+        df = gpd.read_file(str(outpath_fields), encoding='cp865')
 
+    print(df.info())
 
-# ### Convert chip vectors to COCO annotation format (contains test/test split) and export.
+    # ## Cut to chips
 
+    # ### Clip vectors to chip geometries
 
-train_chip_dfs, val_chip_dfs = utils.coco.train_test_split(chip_dfs, test_size=0.2, seed=1)
-coco_train = utils.coco.format_coco(train_chip_dfs, chip_width, chip_height)
-coco_val = utils.coco.format_coco(val_chip_dfs, chip_width, chip_height)
-new_json(outpath / r'annotations/train2016.json', coco_train)
-new_json(outpath / r'annotations/val2016.json', coco_val)
+    if not outpath_chips.exists():
+        with rasterio.open(inpath_s2) as src:
+            raster_meta = src.meta
+        chip_dfs = utils.geo.cut_chip_geometries(vector_df=df,
+                                                 raster_width=raster_meta['width'],
+                                                 raster_height=raster_meta['height'],
+                                                 raster_transform=raster_meta['transform'],
+                                                 chip_width=chip_width,
+                                                 chip_height=chip_height)
+        new_pickle(outpath_chips, chip_dfs)
+    else:
+        chip_dfs = load_pickle(outpath_chips)
 
+    print('len', len(chip_dfs))
 
-# ### Crop images to chips
+    # ### Convert chip vectors to COCO annotation format (contains test/test split) and export.
 
+    train_chip_dfs, val_chip_dfs = utils.coco.train_test_split(chip_dfs, test_size=0.2, seed=1)
+    coco_train = utils.coco.format_coco(train_chip_dfs, chip_width, chip_height)
+    coco_val = utils.coco.format_coco(val_chip_dfs, chip_width, chip_height)
+    new_json(outpath / r'annotations/train2016.json', coco_train)
+    new_json(outpath / r'annotations/val2016.json', coco_val)
 
-# Cut to chip images and write to disk, retrieve chip image statistics
-    
-chip_windows = {chip_name : value['chip_window'] for chip_name, value in chip_dfs.items()}
-chip_statistics = utils.img.cut_chip_images(inpath_raster=inpath_s2,
-                                            outpath_chipfolder=outpath / r'images/train2016', 
-                                            chip_names=chip_windows.keys(),
-                                            chip_windows=chip_windows.values(), 
-                                            bands=[3, 2, 1])
+    # ### Crop images to chips
 
-utils.coco.move_coco_val_images(inpath_train_folder=outpath / r'images/train2016',
-                                val_chips_list=val_chip_dfs.keys())
+    # Cut to chip images and write to disk, retrieve chip image statistics
 
-print('len', len(chip_statistics))
+    chip_windows = {chip_name: value['chip_window'] for chip_name, value in chip_dfs.items()}
+    chip_statistics = utils.img.cut_chip_images(inpath_raster=inpath_s2,
+                                                outpath_chipfolder=outpath / r'images/train2016',
+                                                chip_names=chip_windows.keys(),
+                                                chip_windows=chip_windows.values(),
+                                                bands=[3, 2, 1])
 
+    utils.coco.move_coco_val_images(inpath_train_folder=outpath / r'images/train2016',
+                                    val_chips_list=val_chip_dfs.keys())
 
-# ## Save statistics & visualize results
-# 
-# The statistics are partially used as model training parameters.
+    print('len', len(chip_statistics))
 
+    # ## Save statistics & visualize results
+    #
+    # The statistics are partially used as model training parameters.
 
-statistics = {
-    'nr_chips': len(chip_dfs.keys()),
-    'nr_chips_train': len(train_chip_dfs),
-    'nr_chips_val': len(val_chip_dfs),
-    'nr_polys': sum([len(df['chip_df']) for df in chip_dfs.values()]),
-    'nr_polys_train': sum([len(df['chip_df']) for df in train_chip_dfs.values()]),
-    'nr_polys_val': sum([len(df['chip_df']) for df in val_chip_dfs.values()]),
-    'avg_polys_per_chip': sum([len(df['chip_df']) for df in chip_dfs.values()]) / len(chip_dfs.keys()),
-    'train_rgb_mean': list(np.asarray([df['mean'] for df in [chip_statistics[key] for key in train_chip_dfs.keys()]]).mean(axis=0)),
-    'train_rgb_std': list(np.asarray([df['std'] for df in [chip_statistics[key] for key in train_chip_dfs.keys()]]).mean(axis=0))}
+    statistics = {
+        'nr_chips': len(chip_dfs.keys()),
+        'nr_chips_train': len(train_chip_dfs),
+        'nr_chips_val': len(val_chip_dfs),
+        'nr_polys': sum([len(df['chip_df']) for df in chip_dfs.values()]),
+        'nr_polys_train': sum([len(df['chip_df']) for df in train_chip_dfs.values()]),
+        'nr_polys_val': sum([len(df['chip_df']) for df in val_chip_dfs.values()]),
+        'avg_polys_per_chip': sum([len(df['chip_df']) for df in chip_dfs.values()]) / len(chip_dfs.keys()),
+        'train_rgb_mean': list(
+            np.asarray([df['mean'] for df in [chip_statistics[key] for key in train_chip_dfs.keys()]]).mean(axis=0)),
+        'train_rgb_std': list(
+            np.asarray([df['std'] for df in [chip_statistics[key] for key in train_chip_dfs.keys()]]).mean(axis=0))}
 
-new_json(outpath / 'statistics.json', statistics)
-pprint(statistics)
+    new_json(outpath / 'statistics.json', statistics)
+    pprint(statistics)
 
-# Uncomment to plot results
-#utils.coco.plot_coco(inpath_json=outpath / r'annotations/val2016.json', inpath_image_folder=outpath / r'images/val2016', end=2)
-
+    # Uncomment to plot results
+    # utils.coco.plot_coco(inpath_json=outpath / r'annotations/val2016.json', inpath_image_folder=outpath / r'images/val2016', end=2)

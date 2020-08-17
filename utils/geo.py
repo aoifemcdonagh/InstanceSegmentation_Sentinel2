@@ -311,6 +311,7 @@ def cut_chip_geometries(vector_df, raster_width, raster_height, raster_transform
     all_chip_dfs = {}
     for i, (chip_window, chip_transform, chip_poly) in enumerate(tqdm(generator_window_bounds)):
         if i >= first_n_chips:
+            print("first_n_chips reached, not creating any more chips")
             break
 
         # # Clip geometry to chip
